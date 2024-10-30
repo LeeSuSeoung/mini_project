@@ -78,4 +78,8 @@ public class MemberService {
 			memberMapper.deleteMembers(memberIds); // MemberMapper의 deleteMembers 메서드 호출
 		}
 	}
+	
+	public void updateMemberRole(int memberId, String role) {
+        memberMapper.updateMemberRole(memberId, role);
+    }
 }

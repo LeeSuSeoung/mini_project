@@ -1,43 +1,59 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
-	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-	  layout:decorate="~{layouts/layout}">
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/layout}">
 <head>
     <meta charset="UTF-8">
     <title>회원 목록 - 관리자</title>
 </head>
 <body>
-    <h1>회원 목록</h1>
-    <form action="/user/mulDel" method="post" th:object="${delMemberCommand}">
-        <table class="table">
-            <tr>
-                <th><input type="checkbox" name="all" onclick="allSel(this.checked)" /></th>
-                <th>아이디</th>
-                <th>이름</th>
-                <th>주소</th>
-                <th>이메일</th>
-            </tr>
-            <th:block th:if="${#lists.isEmpty(list)}">
+    <div layout:fragment="content">
+        <h1>회원 목록</h1>
+
+        <!-- Success and error messages -->
+        <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+        <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+
+        <form action="/user/updateRoles" method="post">
+            <table class="table">
                 <tr>
-                    <td colspan="5" style="text-align: center;">--- 작성된 회원이 없습니다. ---</td>
+                    <th><input type="checkbox" name="all" onclick="allSel(this.checked)" /></th>
+                    <th>아이디</th>
+                    <th>이름</th>
+                    <th>주소</th>
+                    <th>이메일</th>
+                    <th>등급</th>
                 </tr>
-            </th:block>
-            <th:block th:unless="${#lists.isEmpty(list)}">
-                <tr th:each="member : ${list}">
-                    <td><input type="checkbox" name="memberId" th:value="${member.memberId}"/></td>
-                    <td th:text="${member.id}"></td>
-                    <td th:text="${member.name}"></td>
-                    <td th:text="${member.address}"></td>
-                    <td th:text="${member.email}"></td>
+                <th:block th:if="${#lists.isEmpty(list)}">
+                    <tr>
+                        <td colspan="6" style="text-align: center;">--- 작성된 회원이 없습니다. ---</td>
+                    </tr>
+                </th:block>
+                <th:block th:unless="${#lists.isEmpty(list)}">
+                    <tr th:each="member : ${list}">
+                        <td><input type="checkbox" name="memberId" th:value="${member.memberId}"/></td>
+                        <td th:text="${member.id}"></td>
+                        <td th:text="${member.name}"></td>
+                        <td th:text="${member.address}"></td>
+                        <td th:text="${member.email}"></td>
+                        <td>
+                            <select th:name="'roles[' + ${member.memberId} + ']'">
+                                <option value="USER" th:selected="${member.role == 'USER'}">사용자</option>
+                                <option value="ADMIN" th:selected="${member.role == 'ADMIN'}">관리자</option>
+                                <option value="MODERATOR" th:selected="${member.role == 'MODERATOR'}">모더레이터</option>
+                            </select>
+                        </td>
+                    </tr>
+                </th:block>
+                <tr>
+                    <td colspan="6">
+                        <button type="button" class="btn" th:onclick="|location.href='@{/user/addUser}'|">회원 추가</button>
+                        <button type="submit" class="btn">등급 수정</button>
+                        <button type="submit" formaction="/user/mulDel" class="btn">삭제</button>
+                    </td>
                 </tr>
-            </th:block>
-            <tr>
-                <td colspan="5">
-                    <button type="button" class="btn" th:onclick="|location.href='@{/user/addUser}'|">회원 추가</button>
-                    <button type="submit" class="btn">삭제</button>
-                </td>
-            </tr>
-        </table>
-    </form>
+            </table>
+        </form>
+    </div>
 </body>
 </html>

@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import com.hk.board.command.AddUserCommand;
 import com.hk.board.command.LoginCommand;
 import com.hk.board.dtos.MemberDto;
+import com.hk.board.mapper.MemberMapper;
 import com.hk.board.service.MemberService;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -28,6 +29,9 @@ public class MemberController {
 
     @Autowired
     private MemberService memberService;
+
+    @Autowired
+    private MemberMapper memberMapper; // MemberMapper 주입
 
     // 회원 가입 페이지
     @GetMapping(value = "/addUser")
@@ -114,4 +118,24 @@ public class MemberController {
         }
         return "redirect:/user/Admin"; // 삭제 후 Admin 페이지로 리다이렉트
     }
+    
+    @PostMapping("/updateRoles")
+    public String updateRoles(@RequestParam Map<String, String> roles, Model model) {
+        try {
+            for (Map.Entry<String, String> entry : roles.entrySet()) {
+                int memberId = Integer.parseInt(entry.getKey().replace("roles[", "").replace("]", ""));
+                String role = entry.getValue();
+
+                // MemberMapper를 통해 역할 업데이트
+                memberMapper.updateMemberRole(memberId, role);
+            }
+            model.addAttribute("successMessage", "회원 등급이 성공적으로 수정되었습니다."); // 추가된 메시지
+        } catch (Exception e) {
+            model.addAttribute("errorMessage", "회원 등급 수정 중 오류가 발생했습니다."); // 오류 메시지
+            e.printStackTrace();
+        }
+        return "redirect:/user/Admin"; // 회원 목록 페이지로 리다이렉트
+    }
+
+
 }
