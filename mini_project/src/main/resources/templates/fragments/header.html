@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+
+<meta charset="UTF-8">
+
+<title>Home</title>
+
+</head>
+
+
+
+<body>
+
+<header th:fragment="header" class="sidebar">
+
+   <div class="sidebar-top">
+
+        <a class="sidebar-title" href="/">GYM Rat</a>
+
+    </div>
+
+    <ul class="nav">
+
+        <li><a href="/">HOME</a></li>
+
+        <li><a href="/board/boardList">게시판</a></li>
+
+        <li><a href="#">마이페이지</a></li>
+
+    </ul>
+
+    <div class="sidebar-bottom">
+
+        <!-- 로그인 여부에 따라 다른 링크 표시 -->
+
+        <div th:if="${session.mdto == null}">
+
+            <a href="/user/login" class="auth-link">Sign In</a>
+
+            <br>
+
+            <a href="/user/addUser" class="auth-link">Sign Up</a>
+
+        </div>
+
+        <div th:if="${session.mdto != null}">
+
+            <a href="/user/logout" class="auth-link">Logout</a>
+
+        </div>
+
+    </div>
+
+</header>
+
+
+
+<!-- 본문 내용 -->
+
+<div class="content">
+
+    <h1>HOME</h1>
+
+    <p><a href="#">게시판</a></p>
+
+</div>
+
+
+
+</body>
+
+</html>

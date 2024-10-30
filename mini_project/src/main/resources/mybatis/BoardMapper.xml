@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "//mybatis.org//DTD Config 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.hk.board.mapper.BoardMapper">
+	
+	<!-- 게시글 DTO와 DB 컬럼 간의 매핑 -->
+	<resultMap type="boardDto" id="boardDtoMap">
+		<id property="board_seq" column="BOARD_SEQ" />
+		<result property="id" column="ID" />
+		<result property="title" column="TITLE" />
+		<result property="content" column="CONTENT" />
+		<result property="regdate" column="REGDATE" />
+		<result property="region" column="REGION" /> <!-- 지역 추가 -->
+		<collection property="fileBoardDto" resultMap="fileBoardDtoMap" />
+	</resultMap>
+	
+	<!-- 파일 DTO와 DB 컬럼 간의 매핑 -->
+	<resultMap type="fileBoardDto" id="fileBoardDtoMap">
+		<id property="file_seq" column="FILE_SEQ" />
+		<result property="board_seq" column="BOARD_SEQ" />
+		<result property="origin_filename" column="ORIGIN_FILENAME" />
+		<result property="stored_filename" column="STORED_FILENAME" />
+	</resultMap>
+	
+	<!-- 모든 게시글 목록 조회 -->
+	<select id="getAllList" resultType="boardDto">
+		SELECT BOARD_SEQ, ID, TITLE, CONTENT, REGDATE, REGION
+		FROM TESTBOARD
+		WHERE DELFLAG = 'N'
+		ORDER BY REGDATE DESC
+	</select>
+	
+	<!-- 특정 게시글 조회 -->
+	<select id="getBoard" parameterType="Integer" resultMap="boardDtoMap">
+		SELECT B.BOARD_SEQ, B.ID, B.TITLE, B.CONTENT, B.REGDATE, B.REGION,
+		       F.FILE_SEQ, F.ORIGIN_FILENAME, F.STORED_FILENAME
+		FROM TESTBOARD B LEFT OUTER JOIN FILEINFO F
+		ON B.BOARD_SEQ = F.BOARD_SEQ
+		WHERE B.BOARD_SEQ = #{board_seq}
+	</select>
+	
+	<!-- 특정 지역의 게시글 조회 -->
+<select id="getListByRegion" parameterType="String" resultType="boardDto">
+    SELECT BOARD_SEQ, ID, TITLE, CONTENT, REGDATE, REGION
+    FROM TESTBOARD
+    WHERE DELFLAG = 'N' AND REGION = #{region}
+    ORDER BY REGDATE DESC
+</select>
+	
+	
+	<!-- 게시글 삽입 -->
+	<insert id="insertBoard" parameterType="boardDto"
+        useGeneratedKeys="true" keyProperty="board_seq">
+    	INSERT INTO TESTBOARD (BOARD_SEQ, ID, TITLE, CONTENT, REGDATE, DELFLAG, REGION)
+    	VALUES (NULL, #{id}, #{title}, #{content}, sysdate(), #{delflag}, #{region})
+	</insert>
+
+	
+	<!-- 게시글 수정 -->
+	<update id="updateBoard" parameterType="boardDto">
+		UPDATE TESTBOARD
+		SET TITLE = #{title}, CONTENT = #{content}, REGION = #{region}
+		WHERE BOARD_SEQ = #{board_seq}
+	</update>
+	
+	<!-- 게시글 삭제 -->
+	<update id="mulDel" parameterType="Map">
+		UPDATE TESTBOARD SET DELFLAG = 'Y' WHERE BOARD_SEQ IN
+		<foreach collection="seqs" item="board_seq" open="(" close=")"
+		         separator=",">
+			#{board_seq}
+		</foreach>
+	</update>
+</mapper>
