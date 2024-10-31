@@ -5,16 +5,27 @@
 <head>
     <meta charset="UTF-8">
     <title>회원 목록 - 관리자</title>
+    <script>
+        function updateEX() {
+            // 수정 확인 대화창
+            if (confirm("정말로 수정하시겠습니까?")) {
+                // 확인 시 성공 메시지 알림
+                alert("수정되었습니다.");
+                return true; // 폼 제출 진행
+            }
+            return false; // 취소 시 폼 제출 중단
+        }
+    </script>
 </head>
 <body>
     <div layout:fragment="content">
         <h1>회원 목록</h1>
 
-        <!-- Success and error messages -->
+        <!-- 성공 및 오류 메시지 -->
         <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
         <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
 
-        <form action="/user/updateRoles" method="post">
+        <form action="/user/updateRoles" method="post" onsubmit="return updateEX()">
             <table class="table">
                 <tr>
                     <th><input type="checkbox" name="all" onclick="allSel(this.checked)" /></th>

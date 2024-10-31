@@ -101,6 +101,35 @@ public class MemberController {
         model.addAttribute("list", userList); // 모델에 회원 목록 추가
         return "board/admin"; // 관리자 페이지 뷰로 이동
     }
+    
+    // 사용자 목록 조회
+    @GetMapping("/userList")
+    public String userList(HttpServletRequest request, Model model) {
+        MemberDto memberDto = (MemberDto) request.getSession().getAttribute("mdto");
+        if (memberDto == null) {
+            return "redirect:/user/login"; // 로그인 페이지로 리다이렉트
+        }
+        
+        model.addAttribute("currentUser", memberDto); // 현재 사용자 정보 추가
+        
+        return "member/userList"; // 사용자 목록 페이지로 이동
+    }
+
+    // 마이페이지 리다이렉트
+    @GetMapping("/myPage")
+    public String myPage(HttpServletRequest request) {
+        MemberDto memberDto = (MemberDto) request.getSession().getAttribute("mdto");
+        if (memberDto == null) {
+            return "redirect:/user/login"; // 로그인 페이지로 리다이렉트
+        }
+        
+        // 역할에 따라 리다이렉트
+        if ("ADMIN".equals(memberDto.getRole()) || "MODERATOR".equals(memberDto.getRole())) {
+            return "redirect:/user/Admin"; // ADMIN 또는 MODERATOR일 경우 관리자 페이지로 리다이렉트
+        } else {
+            return "redirect:/user/userList"; // 일반 사용자일 경우 사용자 목록 페이지로 리다이렉트
+        }
+    }
 
     // 선택된 회원 삭제 기능 추가
     @PostMapping(value = "/mulDel")
@@ -136,6 +165,21 @@ public class MemberController {
         }
         return "redirect:/user/Admin"; // 회원 목록 페이지로 리다이렉트
     }
-
-
+    
+    @PostMapping("/updateUserDetails")
+    public String updateUserDetails(@RequestParam("memberId") int memberId,
+                                    @RequestParam("address") String address,
+                                    @RequestParam("email") String email,
+                                    HttpServletRequest request, Model model) {
+        try {
+            memberService.updateUserDetails(memberId, address, email);
+            model.addAttribute("successMessage", "정보가 성공적으로 수정되었습니다.");
+            // 세션에서 현재 사용자 정보 업데이트
+            MemberDto updatedUser = memberService.getMemberById(memberId);
+            request.getSession().setAttribute("mdto", updatedUser);
+        } catch (Exception e) {
+            model.addAttribute("errorMessage", "정보 수정 중 오류가 발생했습니다.");
+        }
+        return "redirect:/user/userList";
+    }
 }

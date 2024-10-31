@@ -82,4 +82,19 @@ public class MemberService {
 	public void updateMemberRole(int memberId, String role) {
         memberMapper.updateMemberRole(memberId, role);
     }
+	
+	// 사용자 정보 업데이트
+    public void updateUserDetails(int memberId, String address, String email) {
+        MemberDto dto = new MemberDto();
+        dto.setMemberId(memberId);
+        dto.setAddress(address);
+        dto.setEmail(email);
+        memberMapper.updateUser(dto);
+    }
+    
+ // 사용자 ID로 정보 조회 메서드 추가
+    public MemberDto getMemberById(int memberId) {
+        return memberMapper.getMemberById(memberId);
+    }
+
 }

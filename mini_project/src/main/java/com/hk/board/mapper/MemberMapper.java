@@ -39,4 +39,13 @@ public interface MemberMapper {
     // 회원 등급 업데이트
     @Update("UPDATE member SET role = #{role} WHERE memberId = #{memberId}")
     void updateMemberRole(int memberId, String role); // 회원 등급 업데이트 메서드
+    
+ // 사용자 정보 업데이트
+    @Update("UPDATE member SET address = #{address}, email = #{email} WHERE memberId = #{memberId}")
+    void updateUser(MemberDto dto);
+
+ // 사용자 ID로 정보 조회 쿼리 추가
+    @Select("SELECT memberId, id, name, address, email, role FROM member WHERE memberId = #{memberId}")
+    MemberDto getMemberById(int memberId);
+
 }

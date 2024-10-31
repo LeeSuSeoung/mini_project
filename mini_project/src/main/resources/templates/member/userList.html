@@ -1,43 +1,61 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/layout}">
 <head>
     <meta charset="UTF-8">
-    <title>회원 목록 - 사용자</title>
+    <title>마이페이지</title>
+    <script>
+        function confirmUpdate() {
+            return confirm("정말로 수정하시겠습니까?");
+        }
+    </script>
+    
 </head>
 <body>
-    <h1>회원 목록</h1>
-    <form action="/user/mulDel" method="post" th:object="${delMemberCommand}">
+<div layout:fragment="content">
+    <h1>마이페이지</h1>
+
+    <!-- Display success and error messages -->
+    <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+    <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+
+    <form action="/user/updateUserDetails" method="post" onsubmit="return confirmUpdate()">
+        <!-- Member ID가 백엔드로 전송되도록 설정 -->
+        <input type="hidden" name="memberId" th:value="${currentUser.memberId}"/>
+
         <table class="table">
             <tr>
-                <th><input type="checkbox" name="all" onclick="allSel(this.checked)" /></th>
                 <th>아이디</th>
-                <th>이름</th>
-                <th>주소</th>
-                <th>이메일</th>
-                <th>가입일</th>
+                <td th:text="${currentUser.id}"></td>
             </tr>
-            <th:block th:if="${#lists.isEmpty(list)}">
-                <tr>
-                    <td colspan="6" style="text-align: center;">--- 작성된 회원이 없습니다. ---</td>
-                </tr>
-            </th:block>
-            <th:block th:unless="${#lists.isEmpty(list)}">
-                <tr th:each="member : ${list}">
-                    <td><input type="checkbox" name="memberId" th:value="${member.memberId}"/></td>
-                    <td th:text="${member.id}"></td>
-                    <td th:text="${member.name}"></td>
-                    <td th:text="${member.address}"></td>
-                    <td th:text="${member.email}"></td>
-                    <td th:text="${#dates.format(member.regDate, 'yyyy-MM-dd')}"></td>
-                </tr>
-            </th:block>
             <tr>
-                <td colspan="6">
-                    <button type="button" class="btn" th:onclick="|location.href='@{/user/addUser}'|">회원 추가</button>
-                    <button type="submit" class="btn">삭제</button>
+                <th>이름</th>
+                <td th:text="${currentUser.name}"></td>
+            </tr>
+            <tr>
+                <th>등급</th>
+                <td th:text="${currentUser.role}"></td>
+            </tr>
+            <tr>
+                <th>주소</th>
+                <td>
+                    <input type="text" name="address" th:value="${currentUser.address}" class="form-control" required/>
+                </td>
+            </tr>
+            <tr>
+                <th>이메일</th>
+                <td>
+                    <input type="email" name="email" th:value="${currentUser.email}" class="form-control" required/>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2" class="text-center">
+                    <button type="submit" class="btn btn-primary">정보 수정</button>
                 </td>
             </tr>
         </table>
     </form>
+</div>
 </body>
 </html>
