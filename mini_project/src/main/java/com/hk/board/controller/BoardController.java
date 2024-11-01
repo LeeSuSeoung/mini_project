@@ -119,9 +119,13 @@ public class BoardController {
             return "board/boardDetail"; // 게시글 상세보기 페이지로 리턴
         }
 
+        // 게시글 수정 처리
         boardService.updateBoard(updateBoardCommand);
-        return "redirect:/board/boardDetail?board_seq=" + updateBoardCommand.getBoard_seq();
+        
+        // 수정 후 게시글 목록 페이지로 리다이렉트
+        return "redirect:/board/boardList"; 
     }
+
 
 
     // 게시글 다중 삭제
