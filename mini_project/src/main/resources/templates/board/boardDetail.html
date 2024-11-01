@@ -8,7 +8,6 @@
 <script type="text/javascript">
 	function updateEX(){
 		if(confirm("수정하시겠습니까?")){
-			alert("수정되었습니다.");
             return true; // 폼 제출 진행
 		}
 		return false;
@@ -22,6 +21,12 @@
 <div layout:fragment="content">
 <div id="container">
 <h1>상세보기</h1>
+
+<!-- 에러 메시지 출력 -->
+<div th:if="${errorMessage}" class="alert alert-danger">
+    <span th:text="${errorMessage}"></span>
+</div>
+
 <form action="/board/boardUpdate" method="post" onsubmit="return updateEX()"
 								th:object="${updateBoardCommand}">
 	<input type="hidden" name="board_seq" th:value="${dto.board_seq}"/>
@@ -67,6 +72,7 @@
 			</td>
 		</tr>
 	
+		<tr>
 			<th>내용</th>
 			<td>
 				<textarea rows="10" cols="60" name="content" th:text="${dto.content}"
