@@ -1,7 +1,6 @@
 package com.hk.board.controller;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,19 +13,17 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartRequest;
 
 import com.hk.board.command.DelBoardCommand;
 import com.hk.board.command.InsertBoardCommand;
 import com.hk.board.command.UpdateBoardCommand;
 import com.hk.board.dtos.BoardDto;
-import com.hk.board.dtos.FileBoardDto;
+import com.hk.board.dtos.MemberDto;
 import com.hk.board.service.BoardService;
 import com.hk.board.service.FileService;
 
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 
 @Controller
 @RequestMapping(value = "/board")
@@ -44,31 +41,29 @@ public class BoardController {
 
         List<BoardDto> list;
         if (region != null && !region.isEmpty()) {
-            // 지역에 따라 게시글 조회
             list = boardService.getListByRegion(region);
         } else {
-            // 모든 게시글 조회
             list = boardService.getAllList();
         }
 
         model.addAttribute("list", list);
         model.addAttribute("delBoardCommand", new DelBoardCommand());
-        model.addAttribute("region", region);  // 선택된 지역 추가
-        return "board/boardList"; // forward 기능
+        model.addAttribute("region", region);
+        return "board/boardList";
     }
 
+    // 게시글 추가 화면 이동
     @GetMapping(value = "/boardInsert")
     public String boardInsertForm(Model model) {
         model.addAttribute("insertBoardCommand", new InsertBoardCommand());
         return "board/boardInsertForm";
     }
 
+    // 게시글 추가 처리
     @PostMapping(value = "/boardInsert")
-    public String boardInsert(@Validated InsertBoardCommand insertBoardCommand
-            , BindingResult result
-            , MultipartRequest multipartRequest //multipart data를 처리할때 사용
-            , HttpServletRequest request
-            , Model model) throws IllegalStateException, IOException {
+    public String boardInsert(@Validated InsertBoardCommand insertBoardCommand,
+                              BindingResult result, MultipartRequest multipartRequest,
+                              HttpServletRequest request, Model model) throws IllegalStateException, IOException {
         if (result.hasErrors()) {
             System.out.println("글을 모두 입력하세요");
             return "board/boardInsertForm";
@@ -78,63 +73,83 @@ public class BoardController {
         return "redirect:/board/boardList";
     }
 
-    // 상세보기
+    // 게시글 상세보기
     @GetMapping(value = "/boardDetail")
     public String boardDetail(int board_seq, Model model) {
         BoardDto dto = boardService.getBoard(board_seq);
+        
+        // UpdateBoardCommand 객체를 생성하여 지역 필드를 포함
+        UpdateBoardCommand updateBoardCommand = new UpdateBoardCommand();
+        updateBoardCommand.setBoard_seq(dto.getBoard_seq());
+        updateBoardCommand.setTitle(dto.getTitle());
+        updateBoardCommand.setContent(dto.getContent());
+        updateBoardCommand.setRegion(dto.getRegion()); // 지역 정보 설정
 
-        // 유효값처리용
-        model.addAttribute("updateBoardCommand", new UpdateBoardCommand());
-        // 출력용
+        model.addAttribute("updateBoardCommand", updateBoardCommand);
         model.addAttribute("dto", dto);
-        System.out.println(dto);
         return "board/boardDetail";
     }
 
-    // 수정하기
+ // 게시글 수정 처리
     @PostMapping(value = "/boardUpdate")
-    public String boardUpdate(
-            @Validated UpdateBoardCommand updateBoardCommand
-            , BindingResult result
-            , Model model) {
+    public String boardUpdate(@Validated UpdateBoardCommand updateBoardCommand, 
+                              BindingResult result, 
+                              HttpServletRequest request, 
+                              Model model) {
 
+        // 검증 오류가 있을 경우
         if (result.hasErrors()) {
             System.out.println("수정내용을 모두 입력하세요");
-            // 코드 추가--------------------------------------------
             BoardDto dto = boardService.getBoard(updateBoardCommand.getBoard_seq());
             model.addAttribute("dto", dto);
-            //--------------------------------------------------
-            return "board/boardDetail";
+            return "board/boardDetail"; // 오류 발생 시 상세보기 페이지로 리턴
+        }
+
+        MemberDto loggedInUser = (MemberDto) request.getSession().getAttribute("mdto");
+        if (loggedInUser == null) {
+            return "redirect:/user/login"; // 로그인 상태 확인
+        }
+
+        // 현재 게시글 작성자와 로그인한 사용자 확인
+        BoardDto boardDto = boardService.getBoard(updateBoardCommand.getBoard_seq());
+        if (!boardDto.getId().equals(loggedInUser.getId())) {
+            // 수정 시 다른 사용자의 게시물을 수정하려고 할 경우 오류 메시지 설정
+            model.addAttribute("errorMessage", "본인의 게시물만 수정할 수 있습니다."); // 에러 메시지 추가
+            model.addAttribute("dto", boardDto); // 수정할 게시글 정보 다시 전달
+            return "board/boardDetail"; // 게시글 상세보기 페이지로 리턴
         }
 
         boardService.updateBoard(updateBoardCommand);
-        return "redirect:/board/boardDetail?board_seq="
-                + updateBoardCommand.getBoard_seq();
+        return "redirect:/board/boardDetail?board_seq=" + updateBoardCommand.getBoard_seq();
     }
 
-    @GetMapping(value = "/download")
-    public void download(int file_seq, HttpServletRequest request
-            , HttpServletResponse response) throws UnsupportedEncodingException {
 
-        FileBoardDto fdto = fileService.getFileInfo(file_seq); // 파일정보가져오기
-
-        fileService.fileDownload(fdto.getOrigin_filename()
-                , fdto.getStored_filename()
-                , request, response);
-    }
-
+    // 게시글 다중 삭제
     @RequestMapping(value = "mulDel", method = {RequestMethod.POST, RequestMethod.GET})
-    public String mulDel(@Validated DelBoardCommand delBoardCommand
-            , BindingResult result
-            , Model model) {
+    public String mulDel(@Validated DelBoardCommand delBoardCommand, BindingResult result, HttpServletRequest request, Model model) {
         if (result.hasErrors()) {
             System.out.println("최소 하나 체크하기");
             List<BoardDto> list = boardService.getAllList();
             model.addAttribute("list", list);
-            return "board/boardList"; // 오타 수정: boardlist -> boardList
+            return "board/boardList";
         }
-        boardService.mulDel(delBoardCommand.getSeq());
-        System.out.println("글삭제함");
-        return "redirect:/board/boardList";
+
+        MemberDto loggedInUser = (MemberDto) request.getSession().getAttribute("mdto");
+        if (loggedInUser == null) {
+            return "redirect:/user/login";
+        }
+
+        boolean hasPermission = boardService.checkOwnership(delBoardCommand.getSeq(), loggedInUser.getId());
+        if (hasPermission) {
+            boardService.mulDel(delBoardCommand.getSeq());
+            System.out.println("글삭제함");
+            return "redirect:/board/boardList";
+        } else {
+            model.addAttribute("errorMessage", "본인의 게시물만 삭제할 수 있습니다."); // 에러 메시지를 모델에 추가
+            List<BoardDto> list = boardService.getAllList(); // 게시글 목록을 가져옵니다.
+            model.addAttribute("list", list); // 모델에 목록 추가
+            return "board/boardList"; // 목록 페이지로 이동
+        }
     }
+
 }

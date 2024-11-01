@@ -4,13 +4,14 @@
 	  layout:decorate="~{layouts/layout}">
 <head>
 <meta charset="UTF-8">
-<title>Insert title here</title>
+<title>상세보기</title>
 <script type="text/javascript">
 	function updateEX(){
 		if(confirm("수정하시겠습니까?")){
-			return true;
+			alert("수정되었습니다.");
+            return true; // 폼 제출 진행
 		}
-		return false
+		return false;
 	}
 </script>
 <style type="text/css">
@@ -23,7 +24,7 @@
 <h1>상세보기</h1>
 <form action="/board/boardUpdate" method="post" onsubmit="return updateEX()"
 								th:object="${updateBoardCommand}">
-	<input type="hidden" name="board_seq"  th:value="${dto.board_seq}"/>
+	<input type="hidden" name="board_seq" th:value="${dto.board_seq}"/>
 	<table class="table">
 		<tr>
 			<th>작성자[ID]</th>
@@ -32,8 +33,7 @@
 		<tr>
 			<th>제목</th>
 			<td>
-				<input type="text" name="title" th:value="${dto.title}"
-												class="form-control"/>
+				<input type="text" name="title" th:value="${dto.title}" class="form-control"/>
 				<span th:if="${#fields.hasErrors('title')}" 
 					  th:errors="*{title}" class="errorField"></span>
 			</td>
@@ -48,28 +48,39 @@
 					<th:block th:each="fdto:${dto.fileBoardDto}">
 						<span class="glyphicon glyphicon-folder-open"></span>
 						<a th:text="${fdto.origin_filename}"
-						   th:href="@{/board/download(file_seq=${fdto.file_seq})}" ></a>&nbsp;&nbsp;
+						   th:href="@{/board/download(file_seq=${fdto.file_seq})}"></a>&nbsp;&nbsp;
 					</th:block>
 				</td>
 			</th:block>
 		</tr>
 		<tr>
+			<th>지역</th>  <!-- 지역 필드 추가 -->
+			<td>
+				<select name="region" th:field="*{region}">
+					<option value="" disabled th:if="${dto.region == null}">지역을 선택하세요</option>
+					<option value="영등포" th:selected="${dto.region == '영등포'}">영등포</option>
+					<option value="양평" th:selected="${dto.region == '양평'}">양평</option>
+					<option value="문래" th:selected="${dto.region == '문래'}">문래</option>
+					<!-- 추가 지역 옵션 -->
+				</select>
+				<span th:if="${#fields.hasErrors('region')}" th:errors="*{region}" class="errorField"></span>
+			</td>
+		</tr>
+	
 			<th>내용</th>
 			<td>
-				<textarea rows="10" cols="60" name="content"
-						  th:text="${dto.content}"
-				          class="form-control"></textarea>
+				<textarea rows="10" cols="60" name="content" th:text="${dto.content}"
+						  class="form-control"></textarea>
 				<span th:if="${#fields.hasErrors('content')}" 
 					  th:errors="*{content}" class="errorField"></span>
 			</td>
 		</tr>
+		
 		<tr>
 			<td colspan="2">
-<!-- 				<th:block th:if="${session.mdto!=null&&session.mdto.id==dto.id}"> -->
-					<button type="submit" class="btn">수정</button>
-					<button type="button" class="btn"
-					 th:onclick="|location.href='@{/board/mulDel(seq=${dto.board_seq})}'|">삭제</button>
-<!-- 				</th:block> -->
+				<button type="submit" class="btn">수정</button>
+				<button type="button" class="btn"
+				 th:onclick="|location.href='@{/board/mulDel(seq=${dto.board_seq})}'|">삭제</button>
 				<button type="button" class="btn"
 				 th:onclick="|location.href='@{/board/boardList}'|">목록</button>
 			</td>
@@ -80,9 +91,3 @@
 </div>
 </body>
 </html>
-
-
-
-
-
-
