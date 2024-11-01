@@ -51,7 +51,7 @@
                             <select th:name="'roles[' + ${member.memberId} + ']'">
                                 <option value="USER" th:selected="${member.role == 'USER'}">사용자</option>
                                 <option value="ADMIN" th:selected="${member.role == 'ADMIN'}">관리자</option>
-                                <option value="MODERATOR" th:selected="${member.role == 'MODERATOR'}">모더레이터</option>
+                                <option value="MODERATOR" th:selected="${member.role == 'MODERATOR'}">매니저</option>
                             </select>
                         </td>
                     </tr>

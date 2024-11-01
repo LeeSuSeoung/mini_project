@@ -15,7 +15,7 @@
     <div id="container">
         <h1>HOME</h1>
         <th:block th:if="${session.mdto==null}">
-            <p><a href="/user/login">로그인해이자시가</a></p>
+            <p><a href="/user/login">로그인하세요!</a></p>
         </th:block>
         <th:block th:unless="${session.mdto==null}">
             <p><a href="/board/boardList">게시판</a></p>
