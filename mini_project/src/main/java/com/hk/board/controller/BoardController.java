@@ -75,20 +75,26 @@ public class BoardController {
 
     // 게시글 상세보기
     @GetMapping(value = "/boardDetail")
-    public String boardDetail(int board_seq, Model model) {
+    public String boardDetail(int board_seq, Model model, HttpServletRequest request) {
         BoardDto dto = boardService.getBoard(board_seq);
         
-        // UpdateBoardCommand 객체를 생성하여 지역 필드를 포함
         UpdateBoardCommand updateBoardCommand = new UpdateBoardCommand();
         updateBoardCommand.setBoard_seq(dto.getBoard_seq());
         updateBoardCommand.setTitle(dto.getTitle());
         updateBoardCommand.setContent(dto.getContent());
-        updateBoardCommand.setRegion(dto.getRegion()); // 지역 정보 설정
+        updateBoardCommand.setRegion(dto.getRegion());
+
+        // 로그인한 사용자 정보를 가져옵니다
+        MemberDto loggedInUser = (MemberDto) request.getSession().getAttribute("mdto");
+        if (loggedInUser != null) {
+            model.addAttribute("loggedInUserId", loggedInUser.getId());
+        }
 
         model.addAttribute("updateBoardCommand", updateBoardCommand);
         model.addAttribute("dto", dto);
         return "board/boardDetail";
     }
+
 
  // 게시글 수정 처리
     @PostMapping(value = "/boardUpdate")

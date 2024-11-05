@@ -22,10 +22,3 @@ public interface BoardMapper {
 	public List<BoardDto> getListByRegion(String region);
 	
 }
-
-
-
-
-
-
-
