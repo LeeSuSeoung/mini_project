@@ -37,15 +37,10 @@ public class BoardController {
     // 게시글 목록 조회
     @GetMapping(value = "/boardList")
     public String boardList(@RequestParam(required = false) String region, Model model) {
-        System.out.println("글목록 보기");
-
-        List<BoardDto> list;
-        if (region != null && !region.isEmpty()) {
-            list = boardService.getListByRegion(region);
-        } else {
-            list = boardService.getAllList();
-        }
-
+        List<BoardDto> list = (region != null && !region.isEmpty()) 
+                ? boardService.getListByRegion(region) 
+                : boardService.getAllList();
+        
         model.addAttribute("list", list);
         model.addAttribute("delBoardCommand", new DelBoardCommand());
         model.addAttribute("region", region);
@@ -65,7 +60,7 @@ public class BoardController {
                               BindingResult result, MultipartRequest multipartRequest,
                               HttpServletRequest request, Model model) throws IllegalStateException, IOException {
         if (result.hasErrors()) {
-            System.out.println("글을 모두 입력하세요");
+            model.addAttribute("errorMessage", "글을 모두 입력하세요.");
             return "board/boardInsertForm";
         }
 
@@ -75,9 +70,12 @@ public class BoardController {
 
     // 게시글 상세보기
     @GetMapping(value = "/boardDetail")
-    public String boardDetail(int board_seq, Model model, HttpServletRequest request) {
+    public String boardDetail(@RequestParam int board_seq, Model model, HttpServletRequest request) {
         BoardDto dto = boardService.getBoard(board_seq);
-        
+
+        // DTO의 값을 로그로 출력하여 확인
+        System.out.println("Board DTO: " + dto); // DTO 내용 출력
+
         UpdateBoardCommand updateBoardCommand = new UpdateBoardCommand();
         updateBoardCommand.setBoard_seq(dto.getBoard_seq());
         updateBoardCommand.setTitle(dto.getTitle());
@@ -92,11 +90,45 @@ public class BoardController {
 
         model.addAttribute("updateBoardCommand", updateBoardCommand);
         model.addAttribute("dto", dto);
+        model.addAttribute("parentId", dto.getBoard_seq()); // 답글 작성을 위한 부모 ID 전달
         return "board/boardDetail";
     }
 
 
- // 게시글 수정 처리
+    @PostMapping(value = "/reply")
+    public String reply(@Validated InsertBoardCommand insertBoardCommand, 
+                        BindingResult result, 
+                        HttpServletRequest request, 
+                        MultipartRequest multipartRequest, 
+                        Model model) throws IllegalStateException, IOException {
+        // 부모 ID 확인 로그
+        System.out.println("Received parentId: " + insertBoardCommand.getParentId());
+
+        // 유효성 검사 결과 처리
+        if (result.hasErrors()) {
+            model.addAttribute("errorMessage", "답글 내용을 모두 입력하세요.");
+            return "redirect:/board/boardDetail?board_seq=" + insertBoardCommand.getParentId();
+        }
+
+        // 부모 ID 유효성 체크
+        if (insertBoardCommand.getParentId() == null || insertBoardCommand.getParentId() <= 0) {
+            model.addAttribute("errorMessage", "유효하지 않은 부모 ID입니다.");
+            return "redirect:/board/boardList"; 
+        }
+        try {
+            // 답글 추가 처리
+            boardService.insertBoard(insertBoardCommand, multipartRequest, request);
+        } catch (Exception e) {
+            model.addAttribute("errorMessage", "답글 등록 중 오류 발생: " + e.getMessage());
+            return "redirect:/board/boardDetail?board_seq=" + insertBoardCommand.getParentId();
+        }
+
+        // 성공적으로 추가한 경우 리다이렉트
+        return "redirect:/board/boardDetail?board_seq=" + insertBoardCommand.getParentId();
+    }
+
+
+    // 게시글 수정 처리
     @PostMapping(value = "/boardUpdate")
     public String boardUpdate(@Validated UpdateBoardCommand updateBoardCommand, 
                               BindingResult result, 
@@ -105,9 +137,9 @@ public class BoardController {
 
         // 검증 오류가 있을 경우
         if (result.hasErrors()) {
-            System.out.println("수정내용을 모두 입력하세요");
             BoardDto dto = boardService.getBoard(updateBoardCommand.getBoard_seq());
             model.addAttribute("dto", dto);
+            model.addAttribute("errorMessage", "수정내용을 모두 입력하세요.");
             return "board/boardDetail"; // 오류 발생 시 상세보기 페이지로 리턴
         }
 
@@ -119,7 +151,6 @@ public class BoardController {
         // 현재 게시글 작성자와 로그인한 사용자 확인
         BoardDto boardDto = boardService.getBoard(updateBoardCommand.getBoard_seq());
         if (!boardDto.getId().equals(loggedInUser.getId())) {
-            // 수정 시 다른 사용자의 게시물을 수정하려고 할 경우 오류 메시지 설정
             model.addAttribute("errorMessage", "본인의 게시물만 수정할 수 있습니다."); // 에러 메시지 추가
             model.addAttribute("dto", boardDto); // 수정할 게시글 정보 다시 전달
             return "board/boardDetail"; // 게시글 상세보기 페이지로 리턴
@@ -127,18 +158,14 @@ public class BoardController {
 
         // 게시글 수정 처리
         boardService.updateBoard(updateBoardCommand);
-        
-        // 수정 후 게시글 목록 페이지로 리다이렉트
         return "redirect:/board/boardList"; 
     }
-
-
 
     // 게시글 다중 삭제
     @RequestMapping(value = "mulDel", method = {RequestMethod.POST, RequestMethod.GET})
     public String mulDel(@Validated DelBoardCommand delBoardCommand, BindingResult result, HttpServletRequest request, Model model) {
         if (result.hasErrors()) {
-            System.out.println("최소 하나 체크하기");
+            model.addAttribute("errorMessage", "최소 하나 체크하기");
             List<BoardDto> list = boardService.getAllList();
             model.addAttribute("list", list);
             return "board/boardList";
@@ -152,7 +179,6 @@ public class BoardController {
         boolean hasPermission = boardService.checkOwnership(delBoardCommand.getSeq(), loggedInUser.getId());
         if (hasPermission) {
             boardService.mulDel(delBoardCommand.getSeq());
-            System.out.println("글삭제함");
             return "redirect:/board/boardList";
         } else {
             model.addAttribute("errorMessage", "본인의 게시물만 삭제할 수 있습니다."); // 에러 메시지를 모델에 추가
@@ -161,5 +187,4 @@ public class BoardController {
             return "board/boardList"; // 목록 페이지로 이동
         }
     }
-
 }

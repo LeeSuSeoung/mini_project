@@ -14,6 +14,7 @@ public class BoardDto {
     private Date regdate;
     private String delflag = "N";
     private String region; // 지역 추가
+    private Integer parent_id; // 부모 ID 추가
 
     // Join용 멤버 필드
     private List<FileBoardDto> fileBoardDto;
@@ -23,7 +24,7 @@ public class BoardDto {
     }
 
     public BoardDto(int board_seq, String id, String title, String content, Date regdate, String delflag,
-                    String region, List<FileBoardDto> fileBoardDto) {
+                    String region, Integer parent_id, List<FileBoardDto> fileBoardDto) {
         super();
         this.board_seq = board_seq;
         this.id = id;
@@ -32,10 +33,11 @@ public class BoardDto {
         this.regdate = regdate;
         this.delflag = delflag;
         this.region = region; // 지역 초기화
+        this.parent_id = parent_id; // 부모 ID 초기화
         this.fileBoardDto = fileBoardDto;
     }
 
-    // Getter 및 Setter는 그대로 유지
+    // Getter 및 Setter
     public int getBoard_seq() {
         return board_seq;
     }
@@ -92,6 +94,14 @@ public class BoardDto {
         this.region = region;
     }
 
+    public Integer getParent_id() { // 부모 ID에 대한 Getter 추가
+        return parent_id;
+    }
+
+    public void setParent_id(Integer parent_id) { // 부모 ID에 대한 Setter 추가
+        this.parent_id = parent_id;
+    }
+
     public List<FileBoardDto> getFileBoardDto() {
         return fileBoardDto;
     }
@@ -103,6 +113,7 @@ public class BoardDto {
     @Override
     public String toString() {
         return "BoardDto [board_seq=" + board_seq + ", id=" + id + ", title=" + title + ", content=" + content
-                + ", regdate=" + regdate + ", delflag=" + delflag + ", region=" + region + ", fileBoardDto=" + fileBoardDto + "]";
+                + ", regdate=" + regdate + ", delflag=" + delflag + ", region=" + region + ", parent_id=" + parent_id // toString에 parent_id 추가
+                + ", fileBoardDto=" + fileBoardDto + "]";
     }
 }
