@@ -32,32 +32,34 @@ public class FileService {
 	
 	//파일업로드하기
 	@Transactional
-	public List<FileBoardDto> uploadFiles(String uploadPath
-						    ,MultipartRequest multipartRequest) 
-						   throws IllegalStateException, IOException{
-		//여러개의 파일들을 List에 담는 코드
-		List<MultipartFile> multipartFiles
-		                  =multipartRequest.getFiles("filename");
-		
-		//업로드된 파일들의 정보(원본명,저장명)를 담아줄 LIST 
-		List<FileBoardDto> uploadFileList=new ArrayList<>();
-		
-		for(MultipartFile multipartFile:multipartFiles) {
-			//원본파일명 구하기
-			String origin_filename=multipartFile.getOriginalFilename();
-			//저장파일명 구하기: 32자리생성(1234567812345678~.txt)
-			String stored_filename=UUID.randomUUID()
-			+origin_filename.substring(origin_filename.indexOf("."));
-			//파일저장 경로 구하기(파일명을 바꾸기위한 작업)
-			String fileuploadUrl=uploadPath+"/"+stored_filename;
-			multipartFile.transferTo(new File(fileuploadUrl));//upload실행
-			//각각의 파일정보를 list에 저장하는 코드
-			uploadFileList.add(new FileBoardDto(0,0,origin_filename,stored_filename));
-		}
-		
-		return uploadFileList;
+	public List<FileBoardDto> uploadFiles(String uploadPath, MultipartRequest multipartRequest) 
+	        throws IllegalStateException, IOException {
+	    List<MultipartFile> multipartFiles = multipartRequest.getFiles("filename");
+	    List<FileBoardDto> uploadFileList = new ArrayList<>();
+
+	    for (MultipartFile multipartFile : multipartFiles) {
+	        String origin_filename = multipartFile.getOriginalFilename();
+	        
+	        // 원본 파일 이름이 null이거나 비어 있는지 체크
+	        if (origin_filename == null || origin_filename.isEmpty()) {
+	            System.out.println("Uploaded file name is invalid: " + origin_filename);
+	            continue; // 파일이 없으면 다음 파일로 넘어감
+	        }
+
+	        // 저장 파일명 구하기
+	        String fileExtension = origin_filename.substring(origin_filename.lastIndexOf("."));
+	        String stored_filename = UUID.randomUUID().toString() + fileExtension;
+
+	        String fileuploadUrl = uploadPath + "/" + stored_filename;
+	        multipartFile.transferTo(new File(fileuploadUrl)); // upload 실행
+
+	        uploadFileList.add(new FileBoardDto(0, 0, origin_filename, stored_filename));
+	    }
+	    
+	    return uploadFileList;
 	}
-	
+
+
 	//파일정보 가져오기
 	public FileBoardDto getFileInfo(int file_seq) {
 		return fileMapper.getFileInfo(file_seq);

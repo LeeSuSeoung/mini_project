@@ -41,6 +41,7 @@
     						<option value="문래" th:selected="${region == '문래'}">문래</option>
     						<!-- 추가 지역 옵션 -->
 						</select>
+        					<span th:if="${#fields.hasErrors('region')}" th:errors="*{region}"></span>
 
                     </td>
                 </tr>

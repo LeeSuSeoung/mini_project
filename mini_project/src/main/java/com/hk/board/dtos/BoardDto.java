@@ -5,7 +5,7 @@ import java.util.List;
 
 import org.apache.ibatis.type.Alias;
 
-@Alias(value = "boardDto") // mapper.xml에서 사용하는 변수명 설정
+@Alias(value = "boardDto")
 public class BoardDto {
     private int board_seq;
     private String id;
@@ -13,8 +13,11 @@ public class BoardDto {
     private String content;
     private Date regdate;
     private String delflag = "N";
-    private String region; // 지역 추가
-    private Integer parent_id; // 부모 ID 추가
+    private String region;
+    private Integer parent_id;
+
+    // 댓글을 위한 멤버 필드 추가
+    private List<BoardDto> replies;
 
     // Join용 멤버 필드
     private List<FileBoardDto> fileBoardDto;
@@ -24,7 +27,7 @@ public class BoardDto {
     }
 
     public BoardDto(int board_seq, String id, String title, String content, Date regdate, String delflag,
-                    String region, Integer parent_id, List<FileBoardDto> fileBoardDto) {
+                    String region, Integer parent_id, List<FileBoardDto> fileBoardDto, List<BoardDto> replies) {
         super();
         this.board_seq = board_seq;
         this.id = id;
@@ -32,12 +35,13 @@ public class BoardDto {
         this.content = content;
         this.regdate = regdate;
         this.delflag = delflag;
-        this.region = region; // 지역 초기화
-        this.parent_id = parent_id; // 부모 ID 초기화
+        this.region = region;
+        this.parent_id = parent_id;
         this.fileBoardDto = fileBoardDto;
+        this.replies = replies;
     }
 
-    // Getter 및 Setter
+    // Getter 및 Setter 메소드
     public int getBoard_seq() {
         return board_seq;
     }
@@ -94,11 +98,11 @@ public class BoardDto {
         this.region = region;
     }
 
-    public Integer getParent_id() { // 부모 ID에 대한 Getter 추가
+    public Integer getParent_id() {
         return parent_id;
     }
 
-    public void setParent_id(Integer parent_id) { // 부모 ID에 대한 Setter 추가
+    public void setParent_id(Integer parent_id) {
         this.parent_id = parent_id;
     }
 
@@ -110,10 +114,19 @@ public class BoardDto {
         this.fileBoardDto = fileBoardDto;
     }
 
+    // 댓글 리스트를 위한 Getter 및 Setter 메소드 추가
+    public List<BoardDto> getReplies() {
+        return replies;
+    }
+
+    public void setReplies(List<BoardDto> replies) {
+        this.replies = replies;
+    }
+
     @Override
     public String toString() {
         return "BoardDto [board_seq=" + board_seq + ", id=" + id + ", title=" + title + ", content=" + content
-                + ", regdate=" + regdate + ", delflag=" + delflag + ", region=" + region + ", parent_id=" + parent_id // toString에 parent_id 추가
-                + ", fileBoardDto=" + fileBoardDto + "]";
+                + ", regdate=" + regdate + ", delflag=" + delflag + ", region=" + region + ", parent_id=" + parent_id
+                + ", fileBoardDto=" + fileBoardDto + ", replies=" + replies + "]";
     }
 }

@@ -15,6 +15,8 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartRequest;
 
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
 import com.hk.board.command.DelBoardCommand;
 import com.hk.board.command.InsertBoardCommand;
 import com.hk.board.command.UpdateBoardCommand;
@@ -96,36 +98,48 @@ public class BoardController {
 
 
     @PostMapping(value = "/reply")
-    public String reply(@Validated InsertBoardCommand insertBoardCommand, 
-                        BindingResult result, 
-                        HttpServletRequest request, 
-                        MultipartRequest multipartRequest, 
-                        Model model) throws IllegalStateException, IOException {
-        // 부모 ID 확인 로그
+    public String reply(
+            @Validated InsertBoardCommand insertBoardCommand,
+            BindingResult result,
+            HttpServletRequest request,
+            MultipartRequest multipartRequest,
+            Model model,
+            RedirectAttributes redirectAttributes) throws IllegalStateException, IOException {
+
+        System.out.println("InsertBoardCommand 내용: " + insertBoardCommand);
         System.out.println("Received parentId: " + insertBoardCommand.getParentId());
 
-        // 유효성 검사 결과 처리
-        if (result.hasErrors()) {
-            model.addAttribute("errorMessage", "답글 내용을 모두 입력하세요.");
-            return "redirect:/board/boardDetail?board_seq=" + insertBoardCommand.getParentId();
-        }
-
-        // 부모 ID 유효성 체크
         if (insertBoardCommand.getParentId() == null || insertBoardCommand.getParentId() <= 0) {
-            model.addAttribute("errorMessage", "유효하지 않은 부모 ID입니다.");
-            return "redirect:/board/boardList"; 
+            redirectAttributes.addFlashAttribute("errorMessage", "유효하지 않은 부모 ID입니다.");
+            return "redirect:/board/boardList";
         }
-        try {
-            // 답글 추가 처리
-            boardService.insertBoard(insertBoardCommand, multipartRequest, request);
-        } catch (Exception e) {
-            model.addAttribute("errorMessage", "답글 등록 중 오류 발생: " + e.getMessage());
+
+        if (result.hasErrors()) {
+            redirectAttributes.addFlashAttribute("errorMessage", "답글 내용을 모두 입력하세요.");
+            redirectAttributes.addFlashAttribute("insertBoardCommand", insertBoardCommand);
             return "redirect:/board/boardDetail?board_seq=" + insertBoardCommand.getParentId();
         }
 
-        // 성공적으로 추가한 경우 리다이렉트
-        return "redirect:/board/boardDetail?board_seq=" + insertBoardCommand.getParentId();
+        try {
+            boardService.insertBoard(insertBoardCommand, multipartRequest, request);
+        } catch (IOException e) {
+            e.printStackTrace(); // 스택 트레이스 출력
+            redirectAttributes.addFlashAttribute("errorMessage", "파일 처리 중 오류 발생: " + e.getMessage());
+            return "redirect:/board/boardDetail?board_seq=" + insertBoardCommand.getParentId();
+        } catch (Exception e) {
+            e.printStackTrace(); // 스택 트레이스 출력
+            redirectAttributes.addFlashAttribute("errorMessage", "답글 등록 중 오류 발생: " + e.getMessage());
+            return "redirect:/board/boardDetail?board_seq=" + insertBoardCommand.getParentId();
+        }
+
+        // 답글 등록 후 목록 페이지로 리다이렉트
+        redirectAttributes.addFlashAttribute("successMessage", "답글이 성공적으로 등록되었습니다.");
+        return "redirect:/board/boardList";
     }
+
+
+
+
 
 
     // 게시글 수정 처리
@@ -161,7 +175,7 @@ public class BoardController {
         return "redirect:/board/boardList"; 
     }
 
-    // 게시글 다중 삭제
+ // 게시글 다중 삭제
     @RequestMapping(value = "mulDel", method = {RequestMethod.POST, RequestMethod.GET})
     public String mulDel(@Validated DelBoardCommand delBoardCommand, BindingResult result, HttpServletRequest request, Model model) {
         if (result.hasErrors()) {
@@ -176,6 +190,14 @@ public class BoardController {
             return "redirect:/user/login";
         }
 
+        // ADMIN 또는 MODERATOR 등급 사용자일 경우
+        if ("ADMIN".equals(loggedInUser.getRole()) || "MODERATOR".equals(loggedInUser.getRole())) {
+            // 등급이 ADMIN 또는 MODERATOR라면 모든 게시물을 삭제할 수 있습니다.
+            boardService.mulDel(delBoardCommand.getSeq());
+            return "redirect:/board/boardList";
+        }
+
+        // 일반 사용자는 본인의 게시물만 삭제 가능
         boolean hasPermission = boardService.checkOwnership(delBoardCommand.getSeq(), loggedInUser.getId());
         if (hasPermission) {
             boardService.mulDel(delBoardCommand.getSeq());
@@ -187,4 +209,5 @@ public class BoardController {
             return "board/boardList"; // 목록 페이지로 이동
         }
     }
+
 }

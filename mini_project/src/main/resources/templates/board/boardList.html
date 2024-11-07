@@ -47,19 +47,33 @@
                     <th>제목</th>
                     <th>작성일</th>
                 </tr>
-                <th:block th:if="${#lists.isEmpty(list)}">
-                    <tr>
-                        <td colspan="4" style="text-align: center;">---작성된 글이 없습니다.---</td>
-                    </tr>
+
+                <!-- 부모 ID가 null인 게시글만 출력 -->
+                <th:block th:each="dto : ${list}">
+                    <th:block th:if="${dto.parent_id == null}">
+                        <!-- 게시글 본문 -->
+                        <tr>
+                            <td><input type="checkbox" name="seq" th:field="*{seq}" th:value="${dto.board_seq}"/></td>
+                            <td th:text="${dto.id}"></td>
+                            <td><a th:href="@{/board/boardDetail(board_seq=${dto.board_seq})}" th:text="${dto.title}"></a></td>
+                            <td th:text="${#dates.format(dto.regdate,'yyyy-MM-dd')}"></td>
+                        </tr>
+
+                        <!-- 게시글에 달린 댓글 표시 -->
+                        <th:block th:each="reply : ${dto.replies}">
+                            <tr class="reply">
+                                <td></td> <!-- Checkbox를 위한 빈 칸 -->
+                                <td th:text="${reply.id}"></td>
+                                <td>
+                                    <span class="reply-indicator">↳</span>
+                                    <a th:href="@{/board/boardDetail(board_seq=${reply.board_seq})}" th:text="${reply.title}"></a>
+                                </td>
+                                <td th:text="${#dates.format(reply.regdate, 'yyyy-MM-dd')}"></td>
+                            </tr>
+                        </th:block>
+                    </th:block>
                 </th:block>
-                <th:block th:unless="${#lists.isEmpty(list)}">
-                    <tr th:each="dto:${list}">
-                        <td><input type="checkbox" name="seq" th:field="*{seq}" th:value="${dto.board_seq}"/></td>
-                        <td th:text="${dto.id}"></td>
-                        <td><a th:href="@{/board/boardDetail(board_seq=${dto.board_seq})}" th:text="${dto.title}"></a></td>
-                        <td th:text="${#dates.format(dto.regdate,'yyyy-MM-dd')}"></td>
-                    </tr>
-                </th:block>
+
                 <tr>
                     <td colspan="4">
                         <button type="button" class="btn" th:onclick="|location.href='@{/board/boardInsert}'|">글추가</button>

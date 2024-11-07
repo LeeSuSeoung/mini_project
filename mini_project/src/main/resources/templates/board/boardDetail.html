@@ -7,28 +7,25 @@
     <title>상세보기</title>
     <script src="http://code.jquery.com/jquery-latest.js"></script>
     <script th:inline="javascript">
-        // boardSeq 값을 JavaScript 변수에 전달
         var boardSeq = /*[[${dto.board_seq}]]*/ '0'; 
-        console.log("Board Sequence: " + boardSeq); // boardSeq 값 확인
+        console.log("Board Sequence: " + boardSeq);
 
         $(function() {
-            // 답글 버튼 클릭 시 답글 폼을 토글하여 보여줌
             $("#replyBtn").click(function() {
                 $("#replyForm").slideToggle();
-                $("#replyForm form")[0].reset(); // 답글 폼 초기화
-                $("#replyForm input[name='parent_id']").val(boardSeq); // parent_id 설정
-                console.log("Received parentId (on click): " + $("#replyForm input[name='parent_id']").val()); // 설정된 값 확인
+                $("#replyForm form")[0].reset();
+                $("#replyForm input[name='parentId']").val(boardSeq);
+                console.log("Received parentId (on click): " + $("#replyForm input[name='parentId']").val());
             });
 
-            // 폼이 제출될 때 parent_id 값을 다시 확인
             $("#replyForm form").on("submit", function(event) {
-                var parentIdValue = $("#replyForm input[name='parent_id']").val();
+                var parentIdValue = $("#replyForm input[name='parentId']").val();
                 if (!parentIdValue || parentIdValue === 'null') {
-                    event.preventDefault(); // 폼 제출 중단
-                    alert("parent_id 값이 설정되지 않았습니다.");
-                    console.log("parent_id 값이 null로 설정됨 (on submit)");
+                    event.preventDefault();
+                    alert("parentId 값이 설정되지 않았습니다.");
+                    console.log("parentId 값이 null로 설정됨 (on submit)");
                 } else {
-                    console.log("parent_id 값이 제대로 설정됨: " + parentIdValue); // 정상 값 확인
+                    console.log("parentId 값이 제대로 설정됨: " + parentIdValue);
                 }
             });
         });
@@ -41,7 +38,7 @@
         }
 
         #replyForm {
-            display: none; /* 답글 폼 숨김 */
+            display: none;
         }
     </style>
 </head>
@@ -50,12 +47,10 @@
     <div id="container">
         <h1>상세보기</h1>
 
-        <!-- 에러 메시지 표시 -->
         <div th:if="${errorMessage}" class="alert alert-danger">
             <span th:text="${errorMessage}"></span>
         </div>
 
-        <!-- 게시글 수정 폼 -->
         <form action="/board/boardUpdate" method="post" onsubmit="return updateEX()"
               th:object="${updateBoardCommand}">
             <input type="hidden" name="board_seq" th:value="${dto.board_seq}"/>
@@ -64,16 +59,7 @@
                     <th>작성자[ID]</th>
                     <td th:text="${dto.id}"></td>
                 </tr>
-                <tr>
-                    <td colspan="2">
-                        <div>
-                            <p>게시글 번호: <span th:text="${dto.board_seq}"></span></p>
-                            <p>게시글 제목: <span th:text="${dto.title}"></span></p>
-                            <p>게시글 내용: <span th:text="${dto.content}"></span></p>
-                            <p>지역: <span th:text="${dto.region}"></span></p>
-                        </div>
-                    </td>
-                </tr>
+               
                 <tr>
                     <th>제목</th>
                     <td>
@@ -130,8 +116,8 @@
         <div id="replyForm">
             <h1>답글 작성하기</h1>
             <form action="/board/reply" method="post" enctype="multipart/form-data">
-                <input type="hidden" name="parent_id" id="parentId"/> <!-- 부모 ID -->
-                <input type="hidden" name="id" th:value="${loggedInUserId}" readonly="readonly"/> <!-- 로그인한 사용자 ID -->
+                <input type="hidden" name="parentId" id="parent_id"/> <!-- 부모 ID 필드 수정 -->
+                <input type="hidden" name="id" th:value="${loggedInUserId}" readonly="readonly"/>
                 <table class="table">
                     <tr>
                         <th>제목</th>

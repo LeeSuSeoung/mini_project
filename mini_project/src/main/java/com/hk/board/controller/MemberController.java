@@ -49,7 +49,7 @@ public class MemberController {
         }
         try {
             memberService.addUser(addUserCommand);
-            return "redirect:/user/Admin"; // 회원 추가 후 Admin 페이지로 리다이렉트
+            return "redirect:/user/login"; // 회원 추가 후 Admin 페이지로 리다이렉트
         } catch (Exception e) {
             e.printStackTrace();
             model.addAttribute("errorMessage", "회원 추가 중 오류가 발생했습니다.");
