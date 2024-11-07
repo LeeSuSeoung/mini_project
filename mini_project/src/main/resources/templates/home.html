@@ -12,65 +12,86 @@
             color: #333;
         }
         #container {
-            width: 80%;
-            margin: auto;
-            padding: 20px;
-            text-align: center;
+            width: 100%; /* 전체 화면의 너비를 사용 */
+            display: flex;
+            flex-direction: column;
+            align-items: center; /* 모든 자식 요소를 중앙 정렬 */
+            padding-top: 10px; /* 위쪽 여백 추가 */
         }
         .main-banner {
             background: url('/images/banner.jpg') no-repeat center;
-            height: 400px;
+            height: 150px;    /* 배너의 높이를 줄임 */
+            width: 100%;       /* 배너의 너비를 설정 */
             background-size: cover;
             display: flex;
             align-items: center;
             justify-content: center;
             color: #fff;
-            font-size: 48px;
+            font-size: 36px;  /* 배너 폰트 크기 줄임 */
             font-weight: bold;
             text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.7);
+            margin-bottom: 5px; /* 아래쪽 여백 */
         }
         .cta-button {
             background-color: #ff6347; /* 밝은 오렌지색으로 사용자 동기 부여 */
             color: #fff;
-            padding: 15px 30px;
+            padding: 15px 30px; /* 여백 설정 */
             border: none;
             cursor: pointer;
-            font-size: 18px;
-            margin-top: 20px;
+            font-size: 16px; /* 폰트 크기 설정 */
+            margin: 15px 0; /* 위아래 여백 설정 */
             transition: background-color 0.3s ease;
+            text-decoration: none;
         }
         .cta-button:hover {
             background-color: #ff4500; /* 더 진한 오렌지색으로 변환 */
         }
         .info-section {
-            margin-top: 50px;
             display: flex;
-            justify-content: space-around;
+            justify-content: center;  /* 모든 정보 박스를 중앙 정렬 */
+            gap: 30px; /* 박스 사이 간격 설정 */
+            flex-wrap: nowrap;  /* 한 줄로 유지 */
+            width: 100%; /* 정보 섹션 너비 최대 설정 */
+            max-width: 1200px; /* 최대 너비 제한 설정 */
+            margin-top: 20px; /* 위쪽 여백 설정 */
+            padding: 0 20px; /* 좌우 여백 설정 */
         }
         .info-box {
             background: #fff;
             padding: 20px;
             box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-            width: 30%;
+            width: 28%; /* 박스 너비 설정 */
             transition: transform 0.3s ease, box-shadow 0.3s ease;
+            margin-bottom: 15px; /* 아래 여백 */
+            text-align: center; /* 모든 요소를 중앙 정렬 */
+            border-radius: 10px; /* 모서리 라운드 */
         }
         .info-box:hover {
             transform: scale(1.05);
             box-shadow: 0 8px 16px rgba(0,0,0,0.2);
         }
         .info-box img {
-            width: 50px;
-            height: 50px;
-            margin-bottom: 15px;
+            width: 80px;
+            height: 80px;
+            margin-bottom: 15px; /* 이미지 아래 여백 설정 */
+            object-fit: cover;
         }
         .info-box h2 {
-            color: #333;
+            font-size: 20px; /* 제목 폰트 크기 */
+            font-weight: bold;
+            margin-bottom: 10px; /* 제목 아래 여백 */
+            color: #444; /* 더 짙은 색으로 설정 */
+        }
+        .info-box p {
+            font-size: 14px; /* 본문 폰트 크기 설정 */
+            line-height: 1.5;
+            color: #666; /* 본문 색상 약간 회색으로 조정 */
         }
         footer {
             background-color: #333;
             color: #fff;
-            padding: 20px;
-            margin-top: 50px;
+            padding: 10px; /* 푸터 패딩 조정 */
+            margin-top: 20px; /* 위쪽 여백 줄임 */
             text-align: center;
         }
     </style>
@@ -83,33 +104,33 @@
             건강한 몸, 건강한 마음!
         </div>
 
+        <!-- 로그인 관련 버튼 (로그인 여부에 따라 표시) -->
         <th:block th:if="${session.mdto == null}">
-            <p><a href="/user/login" class="cta-button">로그인하고 시작하기</a></p>
+            <a href="/user/login" class="cta-button">로그인하고 시작하기</a>
         </th:block>
-        <th:block th:unless="${session.mdto == null}">
-            <p><a href="/board/boardList" class="cta-button">게시판 가기</a></p>
+        <th:block th:if="${session.mdto != null}">
+            <a href="/board/boardList" class="cta-button">게시판 가기</a>
         </th:block>
 
-        <!-- 정보 섹션 -->
+        <!-- 정보 섹션 (로그인 여부와 상관없이 항상 표시) -->
         <div class="info-section">
             <div class="info-box">
-                <img src="/images/routine_icon.png" alt="운동 루틴 아이콘">
+                <img src="/image/gym.jpg" alt="운동 루틴 아이콘">
                 <h2>운동 루틴 관리</h2>
-                <p>효과적인 운동 계획을 세우고, 자신만의 루틴을 기록하세요.</p>
+                <p>효과적인 운동 계획을 세우고, 자신만의 루틴을 공유하세요.</p>
             </div>
             <div class="info-box">
-                <img src="/images/diet_icon.png" alt="식단 아이콘">
+                <img src="/image/food.jpg" alt="식단 아이콘">
                 <h2>식단 계획</h2>
-                <p>건강한 식단을 구성하고 목표에 맞는 영양소 섭취를 관리하세요.</p>
+                <p>건강한 식단을 구성하고 목표에 맞는 영양소 섭취를 공유하세요.</p>
             </div>
             <div class="info-box">
-                <img src="/images/community_icon.png" alt="커뮤니티 아이콘">
+                <img src="/image/people.jpg" alt="커뮤니티 아이콘">
                 <h2>커뮤니티</h2>
                 <p>다른 헬스인들과 소통하고 영감을 얻으세요!</p>
             </div>
         </div>
     </div>
 </div>
-
 </body>
 </html>
